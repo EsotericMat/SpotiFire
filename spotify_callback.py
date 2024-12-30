@@ -1,6 +1,5 @@
 from flask import Flask, request
 from spotipy import SpotifyOAuth
-import sqlite3
 import os
 from dotenv import load_dotenv
 
@@ -9,10 +8,8 @@ load_dotenv()
 user_token = ""
 app = Flask(__name__)
 
+
 # Spotify OAuth Setup
-
-
-
 @app.route("/callback")
 def spotify_callback():
     code = request.args.get("code")
@@ -37,4 +34,4 @@ def spotify_callback():
 
 
 if __name__ == "__main__":
-    app.run(port=8888)
+    app.run(host="0.0.0.0", port=8080)

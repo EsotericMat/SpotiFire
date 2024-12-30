@@ -103,7 +103,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 # Main Function
-def main():
+def main(context: ContextTypes):
     init_model()
 
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
@@ -113,6 +113,8 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     app.run_polling()
+    return "OK"
+
 
 if __name__ == "__main__":
     main()
