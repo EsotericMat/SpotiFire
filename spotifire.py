@@ -103,7 +103,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 # Main Function
-def main(context: ContextTypes):
+def main():
     init_model()
 
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
