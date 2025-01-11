@@ -1,12 +1,19 @@
 from flask import Flask, request
 from spotipy import SpotifyOAuth
-import os
 from dotenv import load_dotenv
+from waitress import serve
+import os
+
 
 # Load environment variables
 load_dotenv()
 user_token = ""
 app = Flask(__name__)
+
+
+@app.route("/health")  # Add health check endpoint
+def health_check():
+    return "OK", 200
 
 
 # Spotify OAuth Setup
@@ -34,4 +41,8 @@ def spotify_callback():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    # Configure Waitress
+    app.run(
+        host='0.0.0.0',
+        port=int("8080")
+    )
