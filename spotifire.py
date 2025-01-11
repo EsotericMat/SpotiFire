@@ -17,7 +17,6 @@ auth = SpotifyOAuth(
                 show_dialog=True
             )
 
-
 def fetch_token_and_userid(update: Update):
     user_id = update.message.from_user.id
     token = auth.get_access_token(as_dict=False)
@@ -104,6 +103,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 # Main Function
 def main():
+    print('On it')
     init_model()
 
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()

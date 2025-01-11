@@ -6,13 +6,13 @@ from transformers import pipeline
 load_dotenv()
 
 
-def init_model():
+def init_model(device="cpu"):
     global pipe
     pipe = pipeline(
         "text-generation",
         model="google/gemma-2-2b-it",
         model_kwargs={"torch_dtype": torch.bfloat16},
-        device="mps",  # replace with "mps" to run on a Mac device
+        device=device,  # replace with "mps" to run on a Mac device
     )
 
 def generate_playlist(prompt, n=12):
