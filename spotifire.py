@@ -1,5 +1,5 @@
 import os
-from ai import generate_playlist, init_model
+from ai import generate_playlist
 from telegram import Update
 from telegram.ext import filters, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler
 from spotipy import Spotify
@@ -17,6 +17,7 @@ auth = SpotifyOAuth(
                 show_dialog=True
             )
 
+
 def fetch_token_and_userid(update: Update):
     user_id = update.message.from_user.id
     token = auth.get_access_token(as_dict=False)
@@ -31,8 +32,11 @@ def generate_playlist_ids(songs_object, sp):
                 type='track',
                 limit=1
             )
-        if _id:
+        try:
             song_ids.append(_id['tracks']['items'][0]['id'])
+
+        except:
+            print(f'cant find {item["song"]} by {item["artist"]}')
 
     return song_ids
 
@@ -104,7 +108,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 # Main Function
 def main():
     print('On it')
-    init_model()
+    # init_model()
 
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 

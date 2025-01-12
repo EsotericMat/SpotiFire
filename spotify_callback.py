@@ -1,7 +1,6 @@
 from flask import Flask, request
 from spotipy import SpotifyOAuth
 from dotenv import load_dotenv
-from waitress import serve
 import os
 
 
@@ -33,7 +32,7 @@ def spotify_callback():
             scope="playlist-modify-public",
             show_dialog=True
         )
-        token_info = sp_oauth.get_access_token(code)
+        # token_info = sp_oauth.get_access_token(code)
         return "Authorization successful. Token stored.", 200
 
     except Exception as e:
@@ -41,7 +40,6 @@ def spotify_callback():
 
 
 if __name__ == "__main__":
-    # Configure Waitress
     app.run(
         host='0.0.0.0',
         port=int("8080")
