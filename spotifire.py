@@ -25,6 +25,7 @@ GET_PLAYLIST_DESCRIPTION = range(1)
 def fetch_token_and_userid(update: Update):
     print('Fetching token')
     user_id = update.message.from_user.id
+    print(f"user id: {user_id}")
     token = auth.get_access_token(as_dict=False)
     print(f"Token info for user {user_id}: {token}")
     return user_id, token
