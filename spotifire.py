@@ -5,6 +5,7 @@ from telegram.ext import filters, ApplicationBuilder, CommandHandler, ContextTyp
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
@@ -71,6 +72,8 @@ async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Please describe the vibe or theme of the playlist you want to create.")
 
+async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.error(f"Update {update} caused error {context.error}")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Working on it, hold on...')
@@ -115,6 +118,9 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("create_playlist", create_playlist))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Error handler
+    app.add_error_handler(error)
 
     app.run_polling()
     return "OK"
