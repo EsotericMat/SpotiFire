@@ -130,6 +130,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text(f"Can't complete your request right now")
         raise f'Error while creating Spotify playlist: {e}'
 
+    return ConversationHandler.END
+
 
 # Main Function
 def main():
@@ -141,7 +143,7 @@ def main():
     playlist_handler = ConversationHandler(
         entry_points=[CommandHandler("create_playlist", create_playlist)],
         states={
-            GET_PLAYLIST_DESCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_playlist_description)],
+            GET_PLAYLIST_DESCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
