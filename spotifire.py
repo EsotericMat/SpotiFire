@@ -14,13 +14,23 @@ GET_PLAYLIST_DESCRIPTION = range(1)
 
 
 def fetch_token_and_userid(update: Update):
-    print('Fetching token')
-    user_id = update.message.from_user.id
-    print(f"user id: {user_id}")
-    auth = get_auth_manager(user_id)
-    token = auth.get_access_token(as_dict=False)
-    print(f"Token info for user {user_id}: {token}")
-    return user_id, token
+    try:
+        user_id = update.message.from_user.id
+        print(f"Fetching token for user {user_id}")
+
+        auth_manager = get_auth_manager(user_id)
+        token = auth_manager.get_access_token(as_dict=False)
+
+        if not token:
+            print(f"No token found for user {user_id}")
+            return user_id, None
+
+        print(f"Successfully retrieved token for user {user_id}")
+        return user_id, token
+
+    except Exception as e:
+        print(f"Error fetching token: {str(e)}")
+        return update.message.from_user.id, None
 
 
 def generate_playlist_ids(songs_object, sp):
@@ -58,21 +68,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print('Creating playlist')
-    user_id, token = fetch_token_and_userid(update)
+    try:
+        print('Creating playlist')
+        user_id, token = fetch_token_and_userid(update)
 
-    message_type = update.message.chat.type
-    activity = update.message.text
+        message_type = update.message.chat.type
+        activity = update.message.text
 
-    print(f'User {update.message.chat.id} in {message_type}: "{activity}" ')
+        print(f'User {update.message.chat.id} in {message_type}: "{activity}" ')
 
-    # Get description
-    if not token:
-        await update.message.reply_text("You need to authenticate first! Use /start.")
+        # Get description
+        if not token:
+            await update.message.reply_text("You need to authenticate first! Use /start.")
+            return ConversationHandler.END
+
+        await update.message.reply_text("Please describe the vibe or theme of the playlist you want to create.")
+        return GET_PLAYLIST_DESCRIPTION
+
+    except Exception as e:
+        print(f"Error in create_playlist: {str(e)}")
+        await update.message.reply_text("Something went wrong. Please try authenticating again with /start")
         return ConversationHandler.END
 
-    await update.message.reply_text("Please describe the vibe or theme of the playlist you want to create.")
-    return GET_PLAYLIST_DESCRIPTION
 
 
 async def handle_playlist_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
