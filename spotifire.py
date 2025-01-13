@@ -4,26 +4,18 @@ from telegram import Update
 from telegram.ext import filters, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, ConversationHandler
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
+from utils import get_auth_manager
 from dotenv import load_dotenv
 import logging
 
 load_dotenv()
-
-# global auth
-auth = SpotifyOAuth(
-                client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-                client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-                redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
-                scope="playlist-modify-public",
-                show_dialog=True,
-                cache_path=".cache"
-            )
 
 GET_PLAYLIST_DESCRIPTION = range(1)
 
 
 def fetch_token_and_userid(update: Update):
     user_id = update.message.from_user.id
+    auth = get_auth_manager(user_id)
     token = auth.get_access_token()
     print(f"Token info for user {user_id}: {token}")
     return user_id, token
@@ -49,7 +41,7 @@ def generate_playlist_ids(songs_object, sp):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     print('Bot Is Live')
-
+    auth = get_auth_manager(user_id)
     try:
         # Generate Spotify Auth URL
         await update.message.reply_text(f"Welcome to SpotiFire! Please authenticate with Spotify by clicking this link:\n{auth.get_authorize_url(state=str(user_id))}")
