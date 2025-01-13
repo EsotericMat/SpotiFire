@@ -1,7 +1,7 @@
 import os
 from ai import generate_playlist
 from telegram import Update
-from telegram.ext import filters, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler
+from telegram.ext import filters, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, ConversationHandler
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
@@ -17,6 +17,8 @@ auth = SpotifyOAuth(
                 scope="playlist-modify-public",
                 show_dialog=True
             )
+
+GET_PLAYLIST_DESCRIPTION = range(1)
 
 
 def fetch_token_and_userid(update: Update):
@@ -68,12 +70,33 @@ async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get description
     if not token:
         await update.message.reply_text("You need to authenticate first! Use /start.")
-        return
+        return ConversationHandler.END
 
     await update.message.reply_text("Please describe the vibe or theme of the playlist you want to create.")
+    return GET_PLAYLIST_DESCRIPTION
+
+
+async def handle_playlist_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Get the description from the user
+    description = update.message.text
+    user_id, token = fetch_token_and_userid(update)
+
+    # Generate or create the playlist with the given description
+    # (This is where you'd integrate with your playlist creation logic)
+    playlist_name = f"Playlist based on: {description}"
+    await update.message.reply_text(f"Your playlist '{playlist_name}' has been created!")
+
+    # End the conversation
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Playlist creation canceled.")
+    return ConversationHandler.END
+
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.error(f"Update {update} caused error {context.error}")
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Working on it, hold on...')
@@ -115,14 +138,23 @@ def main():
 
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 
+    playlist_handler = ConversationHandler(
+        entry_points=[CommandHandler("create_playlist", create_playlist)],
+        states={
+            GET_PLAYLIST_DESCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_playlist_description)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("create_playlist", create_playlist))
+    app.add_handler(playlist_handler)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Error handler
     app.add_error_handler(error)
 
     app.run_polling()
+
     return "OK"
 
 
