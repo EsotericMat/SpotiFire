@@ -23,6 +23,7 @@ GET_PLAYLIST_DESCRIPTION = range(1)
 
 
 def fetch_token_and_userid(update: Update):
+    print('Fetching token')
     user_id = update.message.from_user.id
     token = auth.get_access_token(as_dict=False)
     print(f"Token info for user {user_id}: {token}")
@@ -63,6 +64,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print('Creating playlist')
     user_id, token = fetch_token_and_userid(update)
 
     message_type = update.message.chat.type
