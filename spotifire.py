@@ -15,7 +15,8 @@ auth = SpotifyOAuth(
                 client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
                 redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
                 scope="playlist-modify-public",
-                show_dialog=True
+                show_dialog=True,
+                cache_path=".cache"
             )
 
 GET_PLAYLIST_DESCRIPTION = range(1)
@@ -24,6 +25,7 @@ GET_PLAYLIST_DESCRIPTION = range(1)
 def fetch_token_and_userid(update: Update):
     user_id = update.message.from_user.id
     token = auth.get_access_token(as_dict=False)
+    print(f"Token info for user {user_id}: {token}")
     return user_id, token
 
 
@@ -62,6 +64,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id, token = fetch_token_and_userid(update)
+
     message_type = update.message.chat.type
     activity = update.message.text
 
