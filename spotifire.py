@@ -5,19 +5,10 @@ from telegram.ext import filters, ApplicationBuilder, CommandHandler, ContextTyp
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
+from utils import get_auth_manager
 import logging
 
 load_dotenv()
-
-# global auth
-auth = SpotifyOAuth(
-                client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-                client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-                redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
-                scope="playlist-modify-public",
-                show_dialog=True,
-                cache_path=".cache"
-            )
 
 GET_PLAYLIST_DESCRIPTION = range(1)
 
@@ -26,6 +17,7 @@ def fetch_token_and_userid(update: Update):
     print('Fetching token')
     user_id = update.message.from_user.id
     print(f"user id: {user_id}")
+    auth = get_auth_manager(user_id)
     token = auth.get_access_token(as_dict=False)
     print(f"Token info for user {user_id}: {token}")
     return user_id, token
@@ -51,6 +43,7 @@ def generate_playlist_ids(songs_object, sp):
 # Start Command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
+    auth = get_auth_manager(user_id)
     print('Bot Is Live')
 
     try:

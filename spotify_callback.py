@@ -1,6 +1,7 @@
 from flask import Flask, request
 from spotipy import SpotifyOAuth
 from dotenv import load_dotenv
+from utils import get_auth_manager
 import os
 
 
@@ -25,13 +26,7 @@ def spotify_callback():
         return "Invalid callback request. Authorization failed.", 400
 
     try:
-        sp_oauth = SpotifyOAuth(
-            client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-            client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-            redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
-            scope="playlist-modify-public",
-            show_dialog=True
-        )
+        sp_oauth = get_auth_manager(user_id)
         # token_info = sp_oauth.get_access_token(code)
         return "Authorization successful. Token stored.", 200
 
