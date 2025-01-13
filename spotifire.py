@@ -19,7 +19,7 @@ def fetch_token_and_userid(update: Update):
         print(f"Fetching token for user {user_id}")
 
         auth_manager = get_auth_manager(user_id)
-        token = auth_manager.get_access_token(as_dict=False)
+        token = auth_manager.get_access_token()
 
         if not token:
             print(f"No token found for user {user_id}")
