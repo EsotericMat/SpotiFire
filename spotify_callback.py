@@ -1,5 +1,5 @@
 from flask import Flask, request
-from spotipy import SpotifyOAuth
+from utils import get_auth_manager
 from dotenv import load_dotenv
 from utils import get_auth_manager
 import os
