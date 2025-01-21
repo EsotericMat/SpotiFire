@@ -1,14 +1,18 @@
 from flask import Flask, request
-from utils import get_auth_manager
+from spotipy import SpotifyOAuth
 from dotenv import load_dotenv
-from utils import get_auth_manager
+from db import MongoDBManager
 import os
-
-
+import logging
 # Load environment variables
 load_dotenv()
-user_token = ""
+db_manager = MongoDBManager()
 app = Flask(__name__)
+
+
+def store_callback_token(auth, user_id, code):
+    token_info = auth.get_access_token(code=code)  # Fetch the token
+    db_manager.store_user_token(user_id, token_info)
 
 
 @app.route("/health")  # Add health check endpoint
@@ -21,14 +25,21 @@ def health_check():
 def spotify_callback():
     code = request.args.get("code")
     user_id = request.args.get("state")  # Telegram user ID passed via 'state'
-
+    logging.debug(f"Received code: {code}, state: {user_id}")
     if not code or not user_id:
         return "Invalid callback request. Authorization failed.", 400
 
     try:
-        sp_oauth = get_auth_manager(user_id)
-        # token_info = sp_oauth.get_access_token(code)
-        return "Authorization successful. Token stored.", 200
+        sp_oauth = SpotifyOAuth(
+            client_id=os.getenv("SPOTIPY_CLIENT_ID"),
+            client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
+            # redirect_uri=os.getenv("TEST_SPOTIPY_REDIRECT_URI"),
+            redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
+            scope="playlist-modify-public",
+            show_dialog=True
+        )
+        store_callback_token(sp_oauth, user_id, code)
+        return "Authorization successful. Token stored. \nYou can now close this window.", 200
 
     except Exception as e:
         return f"Error exchanging token: {str(e)}", 400
@@ -36,6 +47,8 @@ def spotify_callback():
 
 if __name__ == "__main__":
     app.run(
-        host='0.0.0.0',
-        port=int("8080")
+        host='localhost',
+        port=int("8080"),
+        # port=8888,
+        debug=True
     )

@@ -43,7 +43,8 @@ def generate_playlist(prompt, n=12):
 
     user_prompt = f"Create {n*2} songs playlist of: {prompt}"
     ai.configure(api_key=os.getenv("GENAI_API_KEY"))
-    model = ai.GenerativeModel("gemini-1.5-flash")
+    model = ai.GenerativeModel(model_name="gemini-1.5-flash",
+                               generation_config={'response_mime_type': 'application/json'})
     response = model.generate_content(sys_prompt + "\n" + user_prompt)
     songs = response.text.replace("```json", "").replace('```', '')
     print(songs)
