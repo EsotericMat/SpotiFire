@@ -5,7 +5,6 @@ from datetime import datetime
 
 load_dotenv()
 
-
 class MongoDBManager:
     def __init__(self):
         self.client = MongoClient(os.getenv("MONGO_URI"))
@@ -30,6 +29,13 @@ class MongoDBManager:
     def delete_user_token(self, user_id: int):
         """Delete a user's Spotify token from MongoDB."""
         self.users_collection.delete_one({"user_id": user_id})
+
+    def add_user_playlist(self, user_id: int, playlist_name: str):
+        """Add a playlist name to a user in MongoDB."""
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {f"playlists": {playlist_name: datetime.now()}}}
+        )
 
 
 if __name__ == '__main__':

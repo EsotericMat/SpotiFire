@@ -60,7 +60,8 @@ def generate_image(query):
     handler = fal_client.submit(
         "fal-ai/flux/schnell",
         arguments={
-            "prompt": prompt
+            "prompt": prompt,
+            "format": "jpeg",
         },
     )
 
@@ -76,6 +77,7 @@ def generate_image(query):
 # def remove_image_from_disk(image_path):
 #
 #
-# if __name__ == '__main__':
-#     playlist = "Classic Rock n Roll hits from the 80's"
-#     print(generate_playlist(playlist, 4))
+if __name__ == '__main__':
+    # playlist = "Classic Rock n Roll hits from the 80's"
+    # print(generate_playlist(playlist, 4))
+    generate_image("Dog with Glasses")

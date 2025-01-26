@@ -106,9 +106,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Check if the token is expired
         if int(time.time()) > user_token['expires_at']:
             await update.message.reply_text(
-                "Your Spotify token has expired. Please refresh your token by authenticating again."
+                "Your Spotify token has expired. Let me refresh your token"
             )
-            return await prompt_user_for_auth(update, user_id)
+            _, new_token = fetch_token_and_userid(update)
 
         await update.message.reply_text("You are already authenticated with Spotify! 🎉 Run /create_playlist to start!.")
         return
@@ -192,6 +192,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
 
         playlist_url = new_playlist['external_urls']['spotify']
+        db_manager.add_user_playlist(user_id, user_text)
 
     except Exception as e:
         await update.message.reply_text(f"Can't complete your request right now")
