@@ -1,10 +1,11 @@
 import json
 import os
-from dotenv import load_dotenv
+import requests
+import fal_client
 import google.generativeai as ai
+from dotenv import load_dotenv
 
 load_dotenv()
-
 
 def generate_playlist(prompt, n=12):
     """
@@ -51,6 +52,30 @@ def generate_playlist(prompt, n=12):
     return json.loads(songs)['playlist']
 
 
-if __name__ == '__main__':
-    playlist = "Classic Rock n Roll hits from the 80's"
-    print(generate_playlist(playlist, 4))
+def generate_image(query):
+
+    prompt = (f"Create a spotify playlist cover picture for a playlist named: {query}, try your best to represent the"
+              f"vibes of this playlist and songs")
+
+    handler = fal_client.submit(
+        "fal-ai/flux/schnell",
+        arguments={
+            "prompt": prompt
+        },
+    )
+
+    result = handler.get()['images'][0]['url']
+    response = requests.get(result)
+    img_location = f'images/{query.replace(" ","-")}_cover.jpeg'
+    # Open a file in write-binary mode and save the content
+    with open(img_location, 'wb') as file:
+        file.write(response.content)
+
+    return img_location
+
+# def remove_image_from_disk(image_path):
+#
+#
+# if __name__ == '__main__':
+#     playlist = "Classic Rock n Roll hits from the 80's"
+#     print(generate_playlist(playlist, 4))

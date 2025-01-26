@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -15,7 +16,7 @@ class MongoDBManager:
         """Store or update a user's Spotify token in MongoDB."""
         self.users_collection.update_one(
             {"user_id": user_id},
-            {"$set": {"token_info": token_info}},
+            {"$set": {"token_info": token_info, "last_update": datetime.now()}},
             upsert=True
         )
         print(f'Insert {user_id} token successfully')
@@ -23,6 +24,7 @@ class MongoDBManager:
     def get_user_token(self, user_id: int) -> dict:
         """Retrieve a user's Spotify token from MongoDB."""
         user_data = self.users_collection.find_one({"user_id": user_id})
+        print(user_data)
         return user_data.get("token_info") if user_data else None
 
     def delete_user_token(self, user_id: int):
