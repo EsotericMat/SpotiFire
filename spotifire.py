@@ -161,13 +161,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     user_text = update.message.text
     user_id, token = fetch_token_and_userid(update)
-    print(token)
     sp = Spotify(auth=token['access_token'])
+
+    user_profile = sp.current_user()
+    print(user_profile)
+
     songs_objects = generate_playlist(prompt=user_text)
 
     try:
         songs_ids, songs_count = generate_playlist_ids(songs_objects, sp)
-        user_profile = sp.current_user()
         new_playlist = sp.user_playlist_create(
             user=user_profile["id"],
             name=user_text,
