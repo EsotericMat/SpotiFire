@@ -10,11 +10,12 @@ class MongoDBManager:
         self.client = MongoClient(os.getenv("MONGO_URI"))
         self.db = self.client["SpotifireDB"]
         self.users_collection = self.db["users"]
+        self.event_collection = self.db["events"]
 
     def store_user_token(self, user_id: int, token_info: dict):
         """Store or update a user's Spotify token in MongoDB."""
         self.users_collection.update_one(
-            {"user_id": user_id},
+            {"user_id": int(user_id)},
             {"$set": {"token_info": token_info, "last_update": datetime.now()}},
             upsert=True
         )
@@ -23,7 +24,6 @@ class MongoDBManager:
     def get_user_token(self, user_id: int) -> dict:
         """Retrieve a user's Spotify token from MongoDB."""
         user_data = self.users_collection.find_one({"user_id": user_id})
-        print(user_data)
         return user_data.get("token_info") if user_data else None
 
     def delete_user_token(self, user_id: int):
@@ -34,8 +34,18 @@ class MongoDBManager:
         """Add a playlist name to a user in MongoDB."""
         self.users_collection.update_one(
             {"user_id": user_id},
-            {"$set": {f"playlists": {playlist_name: datetime.now()}}}
+            {"$push": {"playlists": {"name": playlist_name, "created_at": datetime.now()}}}
         )
+
+    def add_event(self, user_id, event_type, metadata=None):
+        """Add an event to MongoDB."""
+        event = {
+            "user_id": user_id,
+            "event_type": event_type,
+            "timestamp": datetime.now(),
+            "metadata": metadata or {}
+        }
+        self.event_collection.insert_one(event)
 
 
 if __name__ == '__main__':

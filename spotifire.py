@@ -30,7 +30,7 @@ def get_auth():
 
 def get_user_token(user_id):
     """Retrieve a user's Spotify token and refresh if expired."""
-    user_data = db_manager.users_collection.find_one({"user_id": user_id})
+    user_data = db_manager.users_collection.find_one({"user_id": int(user_id)})
     if not user_data:
         print(f"User {user_id} not found in database")
         return None
@@ -68,15 +68,7 @@ def fetch_token_and_userid(update: Update):
 
     return user_id, token_info
 
-
 GET_PLAYLIST_DESCRIPTION = range(1)
-
-
-def image_to_base64(image_path: str) -> str:
-    """Convert an image to Base64-encoded string."""
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode("utf-8")
-
 
 def generate_playlist_ids(songs_object, sp):
     song_ids = []
@@ -91,13 +83,12 @@ def generate_playlist_ids(songs_object, sp):
         except Exception:
             print(f'cant find {item["song"]} by {item["artist"]}')
 
-    return song_ids
+    return song_ids, len(song_ids)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Start command for the bot. Guides the user to authenticate with Spotify."""
     user_id = update.message.from_user.id  # Ensure this is initialized elsewhere in your code
-    print("type of user_id:", type(user_id))
     await update.message.reply_text(reactor.craft("greet"))
     # Check if user is already authenticated
     user_token = db_manager.get_user_token(user_id)
@@ -124,9 +115,9 @@ async def prompt_user_for_auth(update: Update, user_id: int) -> None:
             f"{os.getenv("SPOTIFY")}/authorize?"
             + urllib.parse.urlencode(
         {
-            "client_id": os.getenv("SPOTIPY_CLIENT_ID"),
+            "client_id": os.getenv("SPOTIFY_CLIENT_ID"),
             "response_type": "code",
-            "redirect_uri": os.getenv("SPOTIPY_REDIRECT_URI"),
+            "redirect_uri": os.getenv("SPOTIFY_REDIRECT_URI"),
             "scope": scope,
             "show_dialog": True,
             "state": user_id,
@@ -136,7 +127,7 @@ async def prompt_user_for_auth(update: Update, user_id: int) -> None:
 
     await update.message.reply_text(
         f"Please authenticate with Spotify by clicking the link below:\n\n{auth_url}\n\n"
-        "After authenticating, return here to continue using the bot. 🎧"
+        "After authenticating, return here and run /create_playlist 🎧"
     )
 
 
@@ -146,6 +137,7 @@ async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     activity = update.message.text
 
     print(f'User {update.message.chat.id} in {message_type}: "{activity}" ')
+    db_manager.add_event(user_id, "PLAYLIST_REQUEST", {"prompt": activity})
 
     # Get description
     if not token:
@@ -171,14 +163,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     message_type = update.message.chat.type
     user_text = update.message.text
     user_id, token = fetch_token_and_userid(update)
-    print(f'User {update.message.chat.id} in {message_type}: "{user_text}" ')
+
     sp = Spotify(auth=token['access_token'])
     songs_objects = generate_playlist(prompt=user_text)
 
     try:
-        cover_img_path = ai.generate_image(query=user_text)
-        time.sleep(1)
-        songs_ids = generate_playlist_ids(songs_objects, sp)
+        songs_ids, songs_count = generate_playlist_ids(songs_objects, sp)
         user_profile = sp.me()
         new_playlist = sp.user_playlist_create(
             user=user_profile["id"],
@@ -192,19 +182,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
 
         playlist_url = new_playlist['external_urls']['spotify']
-        db_manager.add_user_playlist(user_id, user_text)
+        try:
+            db_manager.add_user_playlist(user_id, user_text)
+            db_manager.add_event(user_id, "PLAYLIST_CREATED", {"prompt": user_text, "songs_count": songs_count})
+        except Exception as e:
+            print(f'Error while adding playlist to database: {e}')
 
     except Exception as e:
+        db_manager.add_event(user_id, "PLAYLIST_FAILED", {"prompt": user_text})
         await update.message.reply_text(f"Can't complete your request right now")
         print(f'Error while creating Spotify playlist: {e}')
         return ConversationHandler.END
-
-    try:
-        cover_base64 = image_to_base64(cover_img_path)
-        sp.playlist_upload_cover_image(new_playlist['id'], cover_base64)
-
-    except Exception as e:
-        print(f"Error uploading playlist cover image: {e}")
 
     await update.message.reply_text(f'{reactor.craft('playlist_ready')}\n{playlist_url}')
     return ConversationHandler.END
