@@ -167,11 +167,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     user_text = update.message.text
     user_id, token = fetch_token_and_userid(update)
+    cleanup_cache()
     sp = Spotify(auth=token['access_token'])
-
-    user_profile = sp.current_user()
-    print(user_profile)
-
+    user_profile = sp.current_user() # TODO: Extract features for users profiling later
     songs_objects = generate_playlist(prompt=user_text)
 
     try:
