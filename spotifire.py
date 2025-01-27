@@ -28,6 +28,12 @@ def get_auth():
     )
 
 
+def cleanup_cache():
+    cache_file = '.cache'
+    if os.path.exists(cache_file):
+        os.remove(cache_file)
+
+
 def get_user_token(user_id):
     """Retrieve a user's Spotify token and refresh if expired."""
     user_data = db_manager.users_collection.find_one({"user_id": int(user_id)})
@@ -110,7 +116,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def prompt_user_for_auth(update: Update, user_id: int) -> None:
     """Prompts the user to authenticate with Spotify."""
-    scope = 'user-read-private playlist-modify-public ugc-image-upload'
+    scope = 'user-read-private playlist-modify-public playlist-modify-private ugc-image-upload'
     auth_url = (
             f"{os.getenv("SPOTIFY")}/authorize?"
             + urllib.parse.urlencode(

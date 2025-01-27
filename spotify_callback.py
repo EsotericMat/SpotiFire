@@ -36,7 +36,7 @@ def spotify_callback():
             client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
             # redirect_uri=os.getenv("TEST_SPOTIFY_REDIRECT_URI"),
             redirect_uri=os.getenv("SPOTIFY_REDIRECT_URI"),
-            scope="playlist-modify-public",
+            scope="user-read-private playlist-modify-public playlist-modify-private ugc-image-upload",
             show_dialog=True
         )
         store_callback_token(sp_oauth, user_id, code)
