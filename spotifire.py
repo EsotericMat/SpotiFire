@@ -136,7 +136,6 @@ async def create_playlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_type = update.message.chat.type
     activity = update.message.text
 
-    print(f'User {update.message.chat.id} in {message_type}: "{activity}" ')
     db_manager.add_event(user_id, "PLAYLIST_REQUEST", {"prompt": activity})
 
     # Get description
@@ -160,16 +159,15 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(reactor.craft("on_it"))
 
-    message_type = update.message.chat.type
     user_text = update.message.text
     user_id, token = fetch_token_and_userid(update)
-
+    print(user_id)
     sp = Spotify(auth=token['access_token'])
     songs_objects = generate_playlist(prompt=user_text)
 
     try:
         songs_ids, songs_count = generate_playlist_ids(songs_objects, sp)
-        user_profile = sp.me()
+        user_profile = sp.current_user()
         new_playlist = sp.user_playlist_create(
             user=user_profile["id"],
             name=user_text,
