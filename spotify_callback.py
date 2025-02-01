@@ -15,7 +15,7 @@ def store_callback_token(auth, user_id, code):
     Stores the callback token for a user after successfully receiving it through
     the OAuth process.
     """
-    token_info = auth.get_access_token(code=code)  # Fetch the token
+    token_info = auth.get_access_token(code=code)
     db_manager.store_user_token(user_id, token_info)
 
 @app.route("/health")  # Add health check endpoint

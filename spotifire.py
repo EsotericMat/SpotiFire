@@ -169,9 +169,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_id, token = fetch_token_and_userid(update)
     cleanup_cache()
     sp = Spotify(auth=token['access_token'])
-    user_profile = sp.current_user() # TODO: Extract features for users profiling later
+    user_profile = sp.current_user()  # TODO: Extract features for users profiling later
     songs_objects = generate_playlist(prompt=user_text)
-
+    print("User real id: ", user_profile["id"])
     try:
         songs_ids, songs_count = generate_playlist_ids(songs_objects, sp)
         new_playlist = sp.user_playlist_create(
@@ -206,7 +206,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 def main():
     print('SpotiFire is running...')
 
-    # app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 
     playlist_handler = ConversationHandler(
